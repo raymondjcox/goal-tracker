@@ -1,119 +1,95 @@
-import { ApolloServer } from 'apollo-server-micro'
-import { DateTimeResolver } from 'graphql-scalars'
-import { NextApiHandler } from 'next'
+import { ApolloServer } from "apollo-server-micro"
+import { DateTimeResolver } from "graphql-scalars"
+import { NextApiHandler } from "next"
 import {
   asNexusMethod,
   makeSchema,
   nonNull,
-  nullable,
   objectType,
   stringArg,
-} from 'nexus'
-import path from 'path'
-import cors from 'micro-cors'
-import prisma from '../../lib/prisma'
+} from "nexus"
+import path from "path"
+import cors from "micro-cors"
+import prisma from "../../lib/prisma"
 
-export const GQLDate = asNexusMethod(DateTimeResolver, 'date')
+export const GQLDate = asNexusMethod(DateTimeResolver, "date")
 
 const User = objectType({
-  name: 'User',
+  name: "User",
   definition(t) {
-    t.int('id')
-    t.string('name')
-    t.string('email')
-    t.list.field('posts', {
-      type: 'Post',
-      resolve: (parent) =>
-        prisma.user
-          .findUnique({
-            where: { id: Number(parent.id) },
-          })
-          .posts(),
-    })
+    t.int("id")
+    t.string("name")
+    t.string("email")
   },
 })
 
-const Post = objectType({
-  name: 'Post',
+const Goal = objectType({
+  name: "Goal",
   definition(t) {
-    t.int('id')
-    t.string('title')
-    t.nullable.string('content')
-    t.boolean('published')
-    t.nullable.field('author', {
-      type: 'User',
-      resolve: (parent) =>
-        prisma.post
-          .findUnique({
-            where: { id: Number(parent.id) },
-          })
-          .author(),
-    })
+    t.int("id")
+    t.string("name")
+  },
+})
+
+const Task = objectType({
+  name: "Task",
+  definition(t) {
+    t.int("id")
+    t.string("name")
   },
 })
 
 const Query = objectType({
-  name: 'Query',
+  name: "Query",
   definition(t) {
-    t.field('post', {
-      type: 'Post',
+    t.field("goal", {
+      type: "Goal",
       args: {
-        postId: nonNull(stringArg()),
+        goalId: nonNull(stringArg()),
       },
       resolve: (_, args) => {
-        return prisma.post.findUnique({
-          where: { id: Number(args.postId) },
+        return prisma.goal.findUnique({
+          where: { id: Number(args.goalId) },
         })
       },
     })
 
-    t.list.field('feed', {
-      type: 'Post',
+    t.list.field("goals", {
+      type: "Goal",
       resolve: (_parent, _args) => {
-        return prisma.post.findMany({
-          where: { published: true },
-        })
+        return prisma.goal.findMany()
       },
     })
 
-    t.list.field('drafts', {
-      type: 'Post',
-      resolve: (_parent, _args, ctx) => {
-        return prisma.post.findMany({
-          where: { published: false },
-        })
-      },
-    })
-
-    t.list.field('filterPosts', {
-      type: 'Post',
-      args: {
-        searchString: nullable(stringArg()),
-      },
-      resolve: (_, { searchString }, ctx) => {
-        return prisma.post.findMany({
-          where: {
-            OR: [
-              { title: { contains: searchString } },
-              { content: { contains: searchString } },
-            ],
-          },
-        })
-      },
-    })
+    //t.list.field('filterPosts', {
+    //type: 'Post',
+    //args: {
+    //searchString: nullable(stringArg()),
+    //},
+    //resolve: (_, { searchString }, ctx) => {
+    //return prisma.post.findMany({
+    //where: {
+    //OR: [
+    //{ title: { contains: searchString } },
+    //{ content: { contains: searchString } },
+    //],
+    //},
+    //})
+    //},
+    //})
   },
 })
 
 const Mutation = objectType({
-  name: 'Mutation',
+  name: "Mutation",
   definition(t) {
-    t.field('signupUser', {
-      type: 'User',
+    t.field("signupUser", {
+      type: "User",
       args: {
         name: stringArg(),
         email: nonNull(stringArg()),
       },
-      resolve: (_, { name, email }, ctx) => {
+      resolve: (_, { name, email }) => {
         return prisma.user.create({
           data: {
             name,
@@ -123,48 +99,16 @@ const Mutation = objectType({
       },
     })
 
-    t.nullable.field('deletePost', {
-      type: 'Post',
+    t.field("createGoal", {
+      type: "Goal",
       args: {
-        postId: stringArg(),
+        name: nonNull(stringArg()),
       },
-      resolve: (_, { postId }, ctx) => {
-        return prisma.post.delete({
-          where: { id: Number(postId) },
-        })
-      },
-    })
-
-    t.field('createDraft', {
-      type: 'Post',
-      args: {
-        title: nonNull(stringArg()),
-        content: stringArg(),
-        authorEmail: stringArg(),
-      },
-      resolve: (_, { title, content, authorEmail }, ctx) => {
-        return prisma.post.create({
+      resolve: (_, { name }) => {
+        return prisma.goal.create({
           data: {
-            title,
-            content,
-            published: false,
-            author: {
-              connect: { email: authorEmail },
-            },
+            name,
           },
-        })
-      },
-    })
-
-    t.nullable.field('publish', {
-      type: 'Post',
-      args: {
-        postId: stringArg(),
-      },
-      resolve: (_, { postId }, ctx) => {
-        return prisma.post.update({
-          where: { id: Number(postId) },
-          data: { published: true },
         })
       },
     })
@@ -172,10 +116,10 @@ const Mutation = objectType({
 })
 
 export const schema = makeSchema({
-  types: [Query, Mutation, Post, User, GQLDate],
+  types: [Query, Mutation, Goal, Task, User, GQLDate],
   outputs: {
-    typegen: path.join(process.cwd(), 'generated/nexus-typegen.ts'),
-    schema: path.join(process.cwd(), 'generated/schema.graphql'),
+    typegen: path.join(process.cwd(), "generated/nexus-typegen.ts"),
+    schema: path.join(process.cwd(), "generated/schema.graphql"),
   },
 })
 
@@ -194,7 +138,7 @@ async function getApolloServerHandler() {
     await apolloServer.start()
 
     apolloServerHandler = apolloServer.createHandler({
-      path: '/api',
+      path: "/api",
     })
   }
 
@@ -204,7 +148,7 @@ async function getApolloServerHandler() {
 const handler: NextApiHandler = async (req, res) => {
   const apolloServerHandler = await getApolloServerHandler()
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     res.end()
     return
   }
