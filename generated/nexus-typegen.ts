@@ -44,6 +44,7 @@ export interface NexusGenScalars {
 
 export interface NexusGenObjects {
   Goal: { // root type
+    createdAt?: NexusGenScalars['DateTime'] | null; // DateTime
     id?: number | null; // Int
     name?: string | null; // String
     type?: string | null; // String
@@ -51,6 +52,7 @@ export interface NexusGenObjects {
   Mutation: {};
   Query: {};
   Task: { // root type
+    createdAt?: NexusGenScalars['DateTime'] | null; // DateTime
     id?: number | null; // Int
     name?: string | null; // String
   }
@@ -73,6 +75,7 @@ export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars
 
 export interface NexusGenFieldTypes {
   Goal: { // field return type
+    createdAt: NexusGenScalars['DateTime'] | null; // DateTime
     id: number | null; // Int
     name: string | null; // String
     type: string | null; // String
@@ -87,6 +90,7 @@ export interface NexusGenFieldTypes {
     goals: Array<NexusGenRootTypes['Goal'] | null> | null; // [Goal]
   }
   Task: { // field return type
+    createdAt: NexusGenScalars['DateTime'] | null; // DateTime
     id: number | null; // Int
     name: string | null; // String
   }
@@ -99,6 +103,7 @@ export interface NexusGenFieldTypes {
 
 export interface NexusGenFieldTypeNames {
   Goal: { // field return type name
+    createdAt: 'DateTime'
     id: 'Int'
     name: 'String'
     type: 'String'
@@ -113,6 +118,7 @@ export interface NexusGenFieldTypeNames {
     goals: 'Goal'
   }
   Task: { // field return type name
+    createdAt: 'DateTime'
     id: 'Int'
     name: 'String'
   }

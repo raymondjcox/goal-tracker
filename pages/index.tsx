@@ -86,6 +86,7 @@ const AddNewModal: React.FC<{
           <Input
             onChange={e => setName(e.target.value)}
             placeholder="Goal name"
+            autoFocus
             size="md"
           />
           <RadioGroup
@@ -210,7 +211,7 @@ const App = () => {
           isOpen={showAddNewModal}
         />
         <Box w="100%" m="28" p="20" bgColor="white" borderRadius="lg">
-          <Flex alignItems="center" pb="10">
+          <Flex alignItems="center" pb="5">
             <Box fontSize="3xl" fontWeight="semibold" mr="5">
               My goals
             </Box>

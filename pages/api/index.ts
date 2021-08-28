@@ -30,6 +30,7 @@ const Goal = objectType({
     t.int("id")
     t.string("name")
     t.string("type")
+    t.date("createdAt")
   },
 })
 
@@ -38,6 +39,7 @@ const Task = objectType({
   definition(t) {
     t.int("id")
     t.string("name")
+    t.date("createdAt")
   },
 })
 
@@ -59,7 +61,7 @@ const Query = objectType({
     t.list.field("goals", {
       type: "Goal",
       resolve: (_parent, _args) => {
-        return prisma.goal.findMany()
+        return prisma.goal.findMany({ orderBy: [{ createdAt: "desc" }] })
       },
     })
   },

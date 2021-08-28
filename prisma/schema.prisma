@@ -17,10 +17,12 @@ model Goal {
   name   String
   type   String   
   id        Int     @default(autoincrement()) @id
+  createdAt  DateTime   @default(now())
 }
 
 model Task {
   name        String
   id          Int     @default(autoincrement()) @id
   completed   Boolean
+  createdAt   DateTime   @default(now())
 }
