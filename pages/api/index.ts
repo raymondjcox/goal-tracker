@@ -3,6 +3,7 @@ import { DateTimeResolver } from "graphql-scalars"
 import { NextApiHandler } from "next"
 import {
   asNexusMethod,
+  intArg,
   makeSchema,
   nonNull,
   objectType,
@@ -28,6 +29,7 @@ const Goal = objectType({
   definition(t) {
     t.int("id")
     t.string("name")
+    t.string("type")
   },
 })
 
@@ -60,23 +62,6 @@ const Query = objectType({
         return prisma.goal.findMany()
       },
     })
-
-    //t.list.field('filterPosts', {
-    //type: 'Post',
-    //args: {
-    //searchString: nullable(stringArg()),
-    //},
-    //resolve: (_, { searchString }, ctx) => {
-    //return prisma.post.findMany({
-    //where: {
-    //OR: [
-    //{ title: { contains: searchString } },
-    //{ content: { contains: searchString } },
-    //],
-    //},
-    //})
-    //},
-    //})
   },
 })
 
@@ -103,11 +88,27 @@ const Mutation = objectType({
       type: "Goal",
       args: {
         name: nonNull(stringArg()),
+        type: nonNull(stringArg()),
       },
-      resolve: (_, { name }) => {
+      resolve: (_, { name, type }) => {
         return prisma.goal.create({
           data: {
             name,
+            type,
+          },
+        })
+      },
+    })
+
+    t.field("deleteGoal", {
+      type: "Goal",
+      args: {
+        id: nonNull(intArg()),
+      },
+      resolve: (_, { id }) => {
+        return prisma.goal.delete({
+          where: {
+            id,
           },
         })
       },

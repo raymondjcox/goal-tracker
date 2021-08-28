@@ -15,6 +15,7 @@ model User {
 
 model Goal {
   name   String
+  type   String   
   id        Int     @default(autoincrement()) @id
 }
 

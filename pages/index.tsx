@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Box,
   Button,
@@ -12,6 +12,18 @@ import {
   Input,
   ModalHeader,
   ModalFooter,
+  Table,
+  Tbody,
+  Tr,
+  Td,
+  MenuButton,
+  Menu,
+  MenuList,
+  MenuItem,
+  Badge,
+  Stack,
+  Radio,
+  RadioGroup,
 } from "@chakra-ui/react"
 import gql from "graphql-tag"
 import { useMutation, useQuery } from "@apollo/client"
@@ -22,42 +34,41 @@ const GoalQuery = gql`
     goals {
       id
       name
+      type
     }
   }
 `
 
-const GoalMutation = gql`
-  mutation GoalMutation($name: String!) {
-    createGoal(name: $name) {
+const GoalCreateMutation = gql`
+  mutation GoalCreateMutation($name: String!, $type: String!) {
+    createGoal(name: $name, type: $type) {
       name
+      type
     }
   }
 `
 
-//const FeedQuery = gql`
-//query FeedQuery {
-//feed {
-//id
-//title
-//content
-//published
-//author {
-//id
-//name
-//}
-//}
-//}
-//`
-//const { loading, error, data } = useQuery(FeedQuery, {
-//fetchPolicy: "cache-and-network",
-//})
+const GoalDeleteMutation = gql`
+  mutation GoalDeleteMutation($id: Int!) {
+    deleteGoal(id: $id) {
+      id
+    }
+  }
+`
 
 const AddNewModal: React.FC<{
   onClose: () => void
   isOpen: boolean
 }> = ({ onClose, isOpen }) => {
   const [name, setName] = useState("")
-  const [createGoal] = useMutation(GoalMutation, {
+  const defaultValue = "personal"
+  const [type, setType] = useState(defaultValue)
+  useEffect(() => {
+    if (isOpen) {
+      setType(defaultValue)
+    }
+  }, [isOpen])
+  const [createGoal] = useMutation(GoalCreateMutation, {
     refetchQueries: [GoalQuery],
   })
 
@@ -73,13 +84,27 @@ const AddNewModal: React.FC<{
             placeholder="Goal name"
             size="md"
           />
+          <RadioGroup
+            defaultValue={defaultValue}
+            onChange={type => setType(type)}
+            mt="4"
+          >
+            <Stack>
+              <Radio value="personal" colorScheme="blue">
+                <Badge colorScheme="blue">Personal</Badge>
+              </Radio>
+              <Radio value="work" colorScheme="green">
+                <Badge colorScheme="green">Work</Badge>
+              </Radio>
+            </Stack>
+          </RadioGroup>
         </ModalBody>
         <ModalFooter>
           <ButtonGroup spacing="6">
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>Cancel</Button>
             <Button
               onClick={() => {
-                createGoal({ variables: { name } })
+                createGoal({ variables: { name, type } })
                 onClose()
               }}
               colorScheme="green"
@@ -93,19 +118,80 @@ const AddNewModal: React.FC<{
   )
 }
 
+const GoalsTable: React.FC<{ goals: Goal[] }> = ({ goals }) => {
+  const [deleteGoal] = useMutation(GoalDeleteMutation, {
+    refetchQueries: [GoalQuery],
+  })
+
+  return (
+    <Box maxH="100%">
+      <Table size="lg">
+        <Tbody>
+          {goals.map(goal => (
+            <Tr key={goal.id}>
+              <Td>
+                <Box fontWeight="semibold" color="gray.600">
+                  {goal.name}
+                </Box>
+              </Td>
+              <Td>
+                {goal.type === "work" ? (
+                  <Badge colorScheme="green">Work</Badge>
+                ) : (
+                  <Badge colorScheme="blue">Personal</Badge>
+                )}
+              </Td>
+              <Td align="right">
+                <Menu>
+                  <Flex>
+                    <MenuButton
+                      marginLeft="auto"
+                      color="gray.500"
+                      fontWeight="bold"
+                      size="sm"
+                      as={Button}
+                      variant="ghost"
+                    >
+                      ...
+                    </MenuButton>
+                  </Flex>
+                  <MenuList>
+                    <MenuItem>Edit</MenuItem>
+                    <MenuItem
+                      color="red"
+                      onClick={() => deleteGoal({ variables: { id: goal.id } })}
+                    >
+                      Delete
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              </Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    </Box>
+  )
+}
+
 const App = () => {
   const [showAddNewModal, setShowAddNewModal] = useState(false)
   const { data } = useQuery<{ goals: Goal[] }>(GoalQuery)
   return (
-    <Box bgColor="gray.100" minW="100vw" minH="100vh" display="flex">
+    <Box bgColor="gray.100" maxW="100vw" minH="100vh" display="flex">
       <>
         <AddNewModal
           onClose={() => setShowAddNewModal(false)}
           isOpen={showAddNewModal}
         />
         <Box w="100%" m="28" p="20" bgColor="white" borderRadius="lg">
-          <Flex alignItems="center">
-            <Box fontSize="2xl" fontWeight="semibold" mr="5">
+          <Flex
+            alignItems="center"
+            borderBottom="1px solid"
+            borderBottomColor="gray.100"
+            pb="10"
+          >
+            <Box fontSize="3xl" fontWeight="semibold" mr="5">
               My goals
             </Box>
             <Button
@@ -116,9 +202,7 @@ const App = () => {
               Add new
             </Button>
           </Flex>
-          {data?.goals?.map(goal => (
-            <Box key={goal.id}>{goal.name}</Box>
-          ))}
+          <GoalsTable goals={data?.goals ?? []} />
         </Box>
       </>
     </Box>

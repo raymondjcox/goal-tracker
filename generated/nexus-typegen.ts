@@ -46,6 +46,7 @@ export interface NexusGenObjects {
   Goal: { // root type
     id?: number | null; // Int
     name?: string | null; // String
+    type?: string | null; // String
   }
   Mutation: {};
   Query: {};
@@ -74,9 +75,11 @@ export interface NexusGenFieldTypes {
   Goal: { // field return type
     id: number | null; // Int
     name: string | null; // String
+    type: string | null; // String
   }
   Mutation: { // field return type
     createGoal: NexusGenRootTypes['Goal'] | null; // Goal
+    deleteGoal: NexusGenRootTypes['Goal'] | null; // Goal
     signupUser: NexusGenRootTypes['User'] | null; // User
   }
   Query: { // field return type
@@ -98,9 +101,11 @@ export interface NexusGenFieldTypeNames {
   Goal: { // field return type name
     id: 'Int'
     name: 'String'
+    type: 'String'
   }
   Mutation: { // field return type name
     createGoal: 'Goal'
+    deleteGoal: 'Goal'
     signupUser: 'User'
   }
   Query: { // field return type name
@@ -122,6 +127,10 @@ export interface NexusGenArgTypes {
   Mutation: {
     createGoal: { // args
       name: string; // String!
+      type: string; // String!
+    }
+    deleteGoal: { // args
+      id: number; // Int!
     }
     signupUser: { // args
       email: string; // String!

@@ -10,10 +10,12 @@ scalar DateTime
 type Goal {
   id: Int
   name: String
+  type: String
 }
 
 type Mutation {
-  createGoal(name: String!): Goal
+  createGoal(name: String!, type: String!): Goal
+  deleteGoal(id: Int!): Goal
   signupUser(email: String!, name: String): User
 }
 
