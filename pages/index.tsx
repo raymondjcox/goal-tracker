@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  Center,
   Flex,
   Modal,
   ModalOverlay,
@@ -14,8 +15,11 @@ import {
   ModalFooter,
   Table,
   Tbody,
+  Thead,
+  Th,
   Tr,
   Td,
+  Spinner,
   MenuButton,
   Menu,
   MenuList,
@@ -118,65 +122,86 @@ const AddNewModal: React.FC<{
   )
 }
 
-const GoalsTable: React.FC<{ goals: Goal[] }> = ({ goals }) => {
+const GoalsTable: React.FC = () => {
+  const { data, loading, error } = useQuery<{ goals: Goal[] }>(GoalQuery)
   const [deleteGoal] = useMutation(GoalDeleteMutation, {
     refetchQueries: [GoalQuery],
   })
 
   return (
     <Box maxH="100%">
-      <Table size="lg">
-        <Tbody>
-          {goals.map(goal => (
-            <Tr key={goal.id}>
-              <Td>
-                <Box fontWeight="semibold" color="gray.600">
-                  {goal.name}
-                </Box>
-              </Td>
-              <Td>
-                {goal.type === "work" ? (
-                  <Badge colorScheme="green">Work</Badge>
-                ) : (
-                  <Badge colorScheme="blue">Personal</Badge>
-                )}
-              </Td>
-              <Td align="right">
-                <Menu>
-                  <Flex>
-                    <MenuButton
-                      marginLeft="auto"
-                      color="gray.500"
-                      fontWeight="bold"
-                      size="sm"
-                      as={Button}
-                      variant="ghost"
-                    >
-                      ...
-                    </MenuButton>
-                  </Flex>
-                  <MenuList>
-                    <MenuItem>Edit</MenuItem>
-                    <MenuItem
-                      color="red"
-                      onClick={() => deleteGoal({ variables: { id: goal.id } })}
-                    >
-                      Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
+      {loading ? (
+        <Center>
+          <Spinner
+            thickness="4px"
+            speed="0.65s"
+            emptyColor="gray.200"
+            color="blue.500"
+            size="xl"
+          />
+        </Center>
+      ) : error ? (
+        "ERROR"
+      ) : (
+        <Table size="lg">
+          <Thead>
+            <Th></Th>
+            <Th></Th>
+            <Th></Th>
+          </Thead>
+          <Tbody>
+            {data?.goals.map(goal => (
+              <Tr key={goal.id}>
+                <Td>
+                  <Box fontWeight="semibold" color="gray.600">
+                    {goal.name}
+                  </Box>
+                </Td>
+                <Td>
+                  {goal.type === "work" ? (
+                    <Badge colorScheme="green">Work</Badge>
+                  ) : (
+                    <Badge colorScheme="blue">Personal</Badge>
+                  )}
+                </Td>
+                <Td align="right">
+                  <Menu>
+                    <Flex>
+                      <MenuButton
+                        marginLeft="auto"
+                        color="gray.500"
+                        fontWeight="bold"
+                        size="sm"
+                        as={Button}
+                        variant="ghost"
+                      >
+                        ...
+                      </MenuButton>
+                    </Flex>
+                    <MenuList>
+                      <MenuItem>Edit</MenuItem>
+                      <MenuItem
+                        color="red"
+                        onClick={() =>
+                          deleteGoal({ variables: { id: goal.id } })
+                        }
+                      >
+                        Delete
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      )}
     </Box>
   )
 }
 
 const App = () => {
   const [showAddNewModal, setShowAddNewModal] = useState(false)
-  const { data } = useQuery<{ goals: Goal[] }>(GoalQuery)
   return (
     <Box bgColor="gray.100" maxW="100vw" minH="100vh" display="flex">
       <>
@@ -185,12 +210,7 @@ const App = () => {
           isOpen={showAddNewModal}
         />
         <Box w="100%" m="28" p="20" bgColor="white" borderRadius="lg">
-          <Flex
-            alignItems="center"
-            borderBottom="1px solid"
-            borderBottomColor="gray.100"
-            pb="10"
-          >
+          <Flex alignItems="center" pb="10">
             <Box fontSize="3xl" fontWeight="semibold" mr="5">
               My goals
             </Box>
@@ -202,7 +222,7 @@ const App = () => {
               Add new
             </Button>
           </Flex>
-          <GoalsTable goals={data?.goals ?? []} />
+          <GoalsTable />
         </Box>
       </>
     </Box>
