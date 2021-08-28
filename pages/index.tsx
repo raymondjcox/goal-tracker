@@ -28,6 +28,8 @@ import {
   Stack,
   Radio,
   RadioGroup,
+  CircularProgress,
+  CircularProgressLabel,
 } from "@chakra-ui/react"
 import gql from "graphql-tag"
 import { useMutation, useQuery } from "@apollo/client"
@@ -154,9 +156,16 @@ const GoalsTable: React.FC = () => {
             {data?.goals.map(goal => (
               <Tr key={goal.id}>
                 <Td>
-                  <Box fontWeight="semibold" color="gray.600">
+                  <Flex fontWeight="semibold" color="gray.600">
+                    <CircularProgress
+                      size="24px"
+                      value={Math.random() * 100}
+                      color="blue.200"
+                      thickness="16px"
+                      mr="4"
+                    ></CircularProgress>
                     {goal.name}
-                  </Box>
+                  </Flex>
                 </Td>
                 <Td>
                   {goal.type === "work" ? (
