@@ -18,6 +18,7 @@ type Mutation {
   createGoal(name: String!, type: String!): Goal
   deleteGoal(id: Int!): Goal
   signupUser(email: String!, name: String): User
+  updateGoal(id: Int!, name: String!, type: String!): Goal
 }
 
 type Query {

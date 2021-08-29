@@ -84,6 +84,7 @@ export interface NexusGenFieldTypes {
     createGoal: NexusGenRootTypes['Goal'] | null; // Goal
     deleteGoal: NexusGenRootTypes['Goal'] | null; // Goal
     signupUser: NexusGenRootTypes['User'] | null; // User
+    updateGoal: NexusGenRootTypes['Goal'] | null; // Goal
   }
   Query: { // field return type
     goal: NexusGenRootTypes['Goal'] | null; // Goal
@@ -112,6 +113,7 @@ export interface NexusGenFieldTypeNames {
     createGoal: 'Goal'
     deleteGoal: 'Goal'
     signupUser: 'User'
+    updateGoal: 'Goal'
   }
   Query: { // field return type name
     goal: 'Goal'
@@ -141,6 +143,11 @@ export interface NexusGenArgTypes {
     signupUser: { // args
       email: string; // String!
       name?: string | null; // String
+    }
+    updateGoal: { // args
+      id: number; // Int!
+      name: string; // String!
+      type: string; // String!
     }
   }
   Query: {

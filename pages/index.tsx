@@ -54,6 +54,16 @@ const GoalCreateMutation = gql`
   }
 `
 
+const GoalUpdateMutation = gql`
+  mutation GoalUpdateMutation($name: String!, $type: String!, $id: Int!) {
+    updateGoal(name: $name, type: $type, id: $id) {
+      name
+      type
+      id
+    }
+  }
+`
+
 const GoalDeleteMutation = gql`
   mutation GoalDeleteMutation($id: Int!) {
     deleteGoal(id: $id) {
@@ -62,19 +72,25 @@ const GoalDeleteMutation = gql`
   }
 `
 
-const AddNewModal: React.FC<{
+const CreateOrUpdateGoalModal: React.FC<{
   onClose: () => void
   isOpen: boolean
-}> = ({ onClose, isOpen }) => {
+  goal?: Goal
+}> = ({ onClose, isOpen, goal }) => {
   const [name, setName] = useState("")
   const defaultValue = "personal"
   const [type, setType] = useState(defaultValue)
   useEffect(() => {
     if (isOpen) {
-      setType(defaultValue)
+      setType(goal?.type ?? defaultValue)
+      setName(goal?.name ?? "")
     }
-  }, [isOpen])
+  }, [isOpen, goal])
+
   const [createGoal] = useMutation(GoalCreateMutation, {
+    refetchQueries: [GoalQuery],
+  })
+  const [updateGoal] = useMutation(GoalUpdateMutation, {
     refetchQueries: [GoalQuery],
   })
 
@@ -82,20 +98,17 @@ const AddNewModal: React.FC<{
     <Modal onClose={onClose} size="xl" isOpen={isOpen}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Add new goal</ModalHeader>
+        <ModalHeader>{goal ? "Update goal" : "Add new goal"}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Input
             onChange={e => setName(e.target.value)}
+            value={name}
             placeholder="Goal name"
             autoFocus
             size="md"
           />
-          <RadioGroup
-            defaultValue={defaultValue}
-            onChange={type => setType(type)}
-            mt="4"
-          >
+          <RadioGroup value={type} onChange={type => setType(type)} mt="4">
             <Stack>
               <Radio value="personal" colorScheme="blue">
                 <Badge colorScheme="blue">Personal</Badge>
@@ -111,12 +124,14 @@ const AddNewModal: React.FC<{
             <Button onClick={onClose}>Cancel</Button>
             <Button
               onClick={() => {
-                createGoal({ variables: { name, type } })
+                goal
+                  ? updateGoal({ variables: { name, type, id: goal.id } })
+                  : createGoal({ variables: { name, type } })
                 onClose()
               }}
               colorScheme="green"
             >
-              Create
+              {goal ? "Update" : "Create"}
             </Button>
           </ButtonGroup>
         </ModalFooter>
@@ -125,38 +140,9 @@ const AddNewModal: React.FC<{
   )
 }
 
-const GoalsTable: React.FC = () => {
-  const { data, loading, error } = useQuery<{ goals: Goal[] }>(GoalQuery)
-  const [deleteGoal] = useMutation(GoalDeleteMutation, {
-    refetchQueries: [GoalQuery],
-  })
-
-  return (
-    <Box maxH="100%">
-      {loading ? (
-        <Center>
-          <Spinner
-            thickness="4px"
-            speed="0.65s"
-            emptyColor="gray.200"
-            color="blue.500"
-            size="xl"
-          />
-        </Center>
-      ) : error ? (
-        "ERROR"
-      ) : (
-        <Table size="lg">
-          <Thead>
-            <Th></Th>
-            <Th></Th>
-            <Th></Th>
-          </Thead>
-          <Tbody>
-            {data?.goals.map(goal => (
-              <Tr key={goal.id}>
-                <Td>
-                  <Flex fontWeight="semibold" color="gray.600">
+/*
+  *
+  *
                     <CircularProgress
                       size="24px"
                       value={Math.random() * 100}
@@ -164,49 +150,93 @@ const GoalsTable: React.FC = () => {
                       thickness="16px"
                       mr="4"
                     ></CircularProgress>
-                    {goal.name}
-                  </Flex>
-                </Td>
-                <Td>
-                  {goal.type === "work" ? (
-                    <Badge colorScheme="green">Work</Badge>
-                  ) : (
-                    <Badge colorScheme="blue">Personal</Badge>
-                  )}
-                </Td>
-                <Td align="right">
-                  <Menu>
-                    <Flex>
-                      <MenuButton
-                        marginLeft="auto"
-                        color="gray.500"
-                        fontWeight="bold"
-                        size="sm"
-                        as={Button}
-                        variant="ghost"
-                      >
-                        ...
-                      </MenuButton>
+  * */
+
+const GoalsTable: React.FC = () => {
+  const { data, loading, error } = useQuery<{ goals: Goal[] }>(GoalQuery)
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
+  const [deleteGoal] = useMutation(GoalDeleteMutation, {
+    refetchQueries: [GoalQuery],
+  })
+
+  return (
+    <>
+      <CreateOrUpdateGoalModal
+        goal={editingGoal}
+        isOpen={!!editingGoal}
+        onClose={() => setEditingGoal(null)}
+      />
+      <Box maxH="100%">
+        {loading ? (
+          <Center>
+            <Spinner
+              thickness="4px"
+              speed="0.65s"
+              emptyColor="gray.200"
+              color="blue.500"
+              size="xl"
+            />
+          </Center>
+        ) : error ? (
+          "ERROR"
+        ) : (
+          <Table size="lg">
+            <Thead>
+              <Th></Th>
+              <Th></Th>
+              <Th></Th>
+            </Thead>
+            <Tbody>
+              {data?.goals.map(goal => (
+                <Tr key={goal.id}>
+                  <Td>
+                    <Flex fontWeight="semibold" color="gray.600">
+                      {goal.name}
                     </Flex>
-                    <MenuList>
-                      <MenuItem>Edit</MenuItem>
-                      <MenuItem
-                        color="red"
-                        onClick={() =>
-                          deleteGoal({ variables: { id: goal.id } })
-                        }
-                      >
-                        Delete
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      )}
-    </Box>
+                  </Td>
+                  <Td>
+                    {goal.type === "work" ? (
+                      <Badge colorScheme="green">Work</Badge>
+                    ) : (
+                      <Badge colorScheme="blue">Personal</Badge>
+                    )}
+                  </Td>
+                  <Td align="right">
+                    <Menu>
+                      <Flex>
+                        <MenuButton
+                          marginLeft="auto"
+                          color="gray.500"
+                          fontWeight="bold"
+                          size="sm"
+                          as={Button}
+                          variant="ghost"
+                        >
+                          ...
+                        </MenuButton>
+                      </Flex>
+                      <MenuList>
+                        <MenuItem onClick={() => setEditingGoal(goal)}>
+                          Edit
+                        </MenuItem>
+                        <MenuItem
+                          color="red"
+                          onClick={() =>
+                            deleteGoal({ variables: { id: goal.id } })
+                          }
+                        >
+                          Delete
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
+      </Box>
+    </>
   )
 }
 
@@ -215,7 +245,7 @@ const App = () => {
   return (
     <Box bgColor="gray.100" maxW="100vw" minH="100vh" display="flex">
       <>
-        <AddNewModal
+        <CreateOrUpdateGoalModal
           onClose={() => setShowAddNewModal(false)}
           isOpen={showAddNewModal}
         />

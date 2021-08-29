@@ -102,6 +102,26 @@ const Mutation = objectType({
       },
     })
 
+    t.field("updateGoal", {
+      type: "Goal",
+      args: {
+        name: nonNull(stringArg()),
+        type: nonNull(stringArg()),
+        id: nonNull(intArg()),
+      },
+      resolve: (_, { name, type, id }) => {
+        return prisma.goal.update({
+          where: {
+            id,
+          },
+          data: {
+            name,
+            type,
+          },
+        })
+      },
+    })
+
     t.field("deleteGoal", {
       type: "Goal",
       args: {
