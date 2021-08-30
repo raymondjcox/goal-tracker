@@ -14,6 +14,11 @@ import {
   Stack,
   Radio,
   RadioGroup,
+  Editable,
+  EditableInput,
+  EditablePreview,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react"
 import gql from "graphql-tag"
 import { useMutation } from "@apollo/client"
@@ -46,6 +51,9 @@ const CreateOrUpdateGoalModal: React.FC<{
   const [name, setName] = useState("")
   const defaultValue = "personal"
   const [type, setType] = useState(defaultValue)
+  const [subgoals, setSubgoals] = useState([])
+  const [newSubgoalName, setNewSubgoalName] = useState<string>("Add a subgoal")
+
   useEffect(() => {
     if (isOpen) {
       setType(goal?.type ?? defaultValue)
@@ -67,23 +75,58 @@ const CreateOrUpdateGoalModal: React.FC<{
         <ModalHeader>{goal ? "Update goal" : "Add new goal"}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Input
-            onChange={e => setName(e.target.value)}
-            value={name}
-            placeholder="Goal name"
-            autoFocus
-            size="md"
-          />
-          <RadioGroup value={type} onChange={type => setType(type)} mt="4">
+          <FormControl id="name">
+            <FormLabel>Goal name</FormLabel>
+            <Input
+              onChange={e => setName(e.target.value)}
+              value={name}
+              placeholder="Play the piano"
+              autoFocus
+              size="md"
+            />
+          </FormControl>
+          <FormControl as="fieldset" mt="6">
+            <FormLabel as="legend">Goal Type</FormLabel>
+            <RadioGroup value={type} onChange={type => setType(type)}>
+              <Stack>
+                <Radio value="personal" colorScheme="blue">
+                  <Badge colorScheme="blue">Personal</Badge>
+                </Radio>
+                <Radio value="work" colorScheme="green">
+                  <Badge colorScheme="green">Work</Badge>
+                </Radio>
+              </Stack>
+            </RadioGroup>
+          </FormControl>
+
+          <FormControl as="fieldset" mt="6">
+            <FormLabel as="legend">Subgoals</FormLabel>
+
             <Stack>
-              <Radio value="personal" colorScheme="blue">
-                <Badge colorScheme="blue">Personal</Badge>
-              </Radio>
-              <Radio value="work" colorScheme="green">
-                <Badge colorScheme="green">Work</Badge>
-              </Radio>
+              <Editable
+                value={newSubgoalName}
+                onChange={nextValue => {
+                  setNewSubgoalName(nextValue)
+                }}
+                onSubmit={() => {
+                  setSubgoals(s => [
+                    { name: newSubgoalName, completed: false },
+                    ...s,
+                  ])
+                  setNewSubgoalName("Add a subgoal")
+                }}
+              >
+                <EditablePreview color="gray.500" />
+                <EditableInput />
+              </Editable>
+              {subgoals.map(s => (
+                <Editable value={s.name}>
+                  <EditablePreview />
+                  <EditableInput />
+                </Editable>
+              ))}
             </Stack>
-          </RadioGroup>
+          </FormControl>
         </ModalBody>
         <ModalFooter>
           <ButtonGroup spacing="6">

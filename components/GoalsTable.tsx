@@ -17,10 +17,87 @@ import {
   MenuList,
   MenuItem,
   Badge,
+  Grid,
+  Accordion,
+  AccordionButton,
+  AccordionItem,
+  AccordionIcon,
+  AccordionPanel,
 } from "@chakra-ui/react"
 import gql from "graphql-tag"
 import { useMutation, useQuery } from "@apollo/client"
 import { Goal } from "@prisma/client"
+
+/*
+  *
+  *
+  *
+            <Box>
+              <Accordion>
+                {data?.goals.map(goal => (
+                  <AccordionItem>
+                    <AccordionButton>
+                      <Grid gridTemplateColumns="1fr 1fr 1fr" width="100%">
+                        <Box justifySelf="flex-start">{goal.name}</Box>
+                        <Box>{goal.type}</Box>
+                        <Box justifySelf="flex-end">
+                          <Menu>
+                            <Flex>
+                              <MenuButton
+                                marginLeft="auto"
+                                color="gray.500"
+                                fontWeight="bold"
+                                size="sm"
+                                as={Button}
+                                variant="ghost"
+                              >
+                                ...
+                              </MenuButton>
+                            </Flex>
+                            <MenuList>
+                              <MenuItem onClick={() => setEditingGoal(goal)}>
+                                Edit
+                              </MenuItem>
+                              <MenuItem
+                                color="red"
+                                onClick={() =>
+                                  deleteGoal({ variables: { id: goal.id } })
+                                }
+                              >
+                                Delete
+                              </MenuItem>
+                            </MenuList>
+                          </Menu>
+                        </Box>
+                      </Grid>
+                    </AccordionButton>
+                    <AccordionPanel pb={4}>
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                      sed do eiusmod tempor incididunt ut labore et dolore magna
+                      aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                      ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                    </AccordionPanel>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </Box>
+  * /
+
+
+
+
+
+/*
+  *
+  *
+                    <CircularProgress
+                      size="24px"
+                      value={Math.random() * 100}
+                      color="blue.200"
+                      thickness="16px"
+                      mr="4"
+                    ></CircularProgress>
+  * */
 
 const GoalDeleteMutation = gql`
   mutation GoalDeleteMutation($id: Int!) {
@@ -39,18 +116,6 @@ const GoalQuery = gql`
     }
   }
 `
-
-/*
-  *
-  *
-                    <CircularProgress
-                      size="24px"
-                      value={Math.random() * 100}
-                      color="blue.200"
-                      thickness="16px"
-                      mr="4"
-                    ></CircularProgress>
-  * */
 
 const GoalsTable: React.FC = () => {
   const { data, loading, error } = useQuery<{ goals: Goal[] }>(GoalQuery)
@@ -80,60 +145,64 @@ const GoalsTable: React.FC = () => {
         ) : error ? (
           "ERROR"
         ) : (
-          <Table size="lg">
-            <Thead>
-              <Th></Th>
-              <Th></Th>
-              <Th></Th>
-            </Thead>
-            <Tbody>
-              {data?.goals.map(goal => (
-                <Tr key={goal.id}>
-                  <Td>
-                    <Flex fontWeight="semibold" color="gray.600">
-                      {goal.name}
-                    </Flex>
-                  </Td>
-                  <Td>
-                    {goal.type === "work" ? (
-                      <Badge colorScheme="green">Work</Badge>
-                    ) : (
-                      <Badge colorScheme="blue">Personal</Badge>
-                    )}
-                  </Td>
-                  <Td align="right">
-                    <Menu>
-                      <Flex>
-                        <MenuButton
-                          marginLeft="auto"
-                          color="gray.500"
-                          fontWeight="bold"
-                          size="sm"
-                          as={Button}
-                          variant="ghost"
-                        >
-                          ...
-                        </MenuButton>
-                      </Flex>
-                      <MenuList>
-                        <MenuItem onClick={() => setEditingGoal(goal)}>
-                          Edit
-                        </MenuItem>
-                        <MenuItem
-                          color="red"
-                          onClick={() =>
-                            deleteGoal({ variables: { id: goal.id } })
-                          }
-                        >
-                          Delete
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
-                  </Td>
+          <>
+            <Table size="lg">
+              <Thead>
+                <Tr>
+                  <Th></Th>
+                  <Th></Th>
+                  <Th></Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
+              </Thead>
+              <Tbody>
+                {data?.goals.map(goal => (
+                  <Tr key={goal.id}>
+                    <Td>
+                      <Flex fontWeight="semibold" color="gray.600">
+                        {goal.name}
+                      </Flex>
+                    </Td>
+                    <Td>
+                      {goal.type === "work" ? (
+                        <Badge colorScheme="green">Work</Badge>
+                      ) : (
+                        <Badge colorScheme="blue">Personal</Badge>
+                      )}
+                    </Td>
+                    <Td align="right">
+                      <Menu>
+                        <Flex>
+                          <MenuButton
+                            marginLeft="auto"
+                            color="gray.500"
+                            fontWeight="bold"
+                            size="sm"
+                            as={Button}
+                            variant="ghost"
+                          >
+                            ...
+                          </MenuButton>
+                        </Flex>
+                        <MenuList>
+                          <MenuItem onClick={() => setEditingGoal(goal)}>
+                            Edit
+                          </MenuItem>
+                          <MenuItem
+                            color="red"
+                            onClick={() =>
+                              deleteGoal({ variables: { id: goal.id } })
+                            }
+                          >
+                            Delete
+                          </MenuItem>
+                        </MenuList>
+                      </Menu>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </>
         )}
       </Box>
     </>
