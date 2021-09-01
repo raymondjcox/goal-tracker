@@ -28,6 +28,13 @@ declare global {
 }
 
 export interface NexusGenInputs {
+  InputSubGoal: { // input type
+    completed?: boolean | null; // Boolean
+    createdAt?: NexusGenScalars['DateTime'] | null; // DateTime
+    goalId?: number | null; // Int
+    id?: number | null; // Int
+    name?: string | null; // String
+  }
 }
 
 export interface NexusGenEnums {
@@ -51,8 +58,10 @@ export interface NexusGenObjects {
   }
   Mutation: {};
   Query: {};
-  Task: { // root type
+  SubGoal: { // root type
+    completed?: boolean | null; // Boolean
     createdAt?: NexusGenScalars['DateTime'] | null; // DateTime
+    goalId?: number | null; // Int
     id?: number | null; // Int
     name?: string | null; // String
   }
@@ -78,6 +87,7 @@ export interface NexusGenFieldTypes {
     createdAt: NexusGenScalars['DateTime'] | null; // DateTime
     id: number | null; // Int
     name: string | null; // String
+    subgoals: Array<NexusGenRootTypes['SubGoal'] | null> | null; // [SubGoal]
     type: string | null; // String
   }
   Mutation: { // field return type
@@ -90,8 +100,11 @@ export interface NexusGenFieldTypes {
     goal: NexusGenRootTypes['Goal'] | null; // Goal
     goals: Array<NexusGenRootTypes['Goal'] | null> | null; // [Goal]
   }
-  Task: { // field return type
+  SubGoal: { // field return type
+    completed: boolean | null; // Boolean
     createdAt: NexusGenScalars['DateTime'] | null; // DateTime
+    goal: NexusGenRootTypes['Goal'] | null; // Goal
+    goalId: number | null; // Int
     id: number | null; // Int
     name: string | null; // String
   }
@@ -107,6 +120,7 @@ export interface NexusGenFieldTypeNames {
     createdAt: 'DateTime'
     id: 'Int'
     name: 'String'
+    subgoals: 'SubGoal'
     type: 'String'
   }
   Mutation: { // field return type name
@@ -119,8 +133,11 @@ export interface NexusGenFieldTypeNames {
     goal: 'Goal'
     goals: 'Goal'
   }
-  Task: { // field return type name
+  SubGoal: { // field return type name
+    completed: 'Boolean'
     createdAt: 'DateTime'
+    goal: 'Goal'
+    goalId: 'Int'
     id: 'Int'
     name: 'String'
   }
@@ -135,6 +152,7 @@ export interface NexusGenArgTypes {
   Mutation: {
     createGoal: { // args
       name: string; // String!
+      subgoals?: Array<NexusGenInputs['InputSubGoal'] | null> | null; // [InputSubGoal]
       type: string; // String!
     }
     deleteGoal: { // args
@@ -147,6 +165,7 @@ export interface NexusGenArgTypes {
     updateGoal: { // args
       id: number; // Int!
       name: string; // String!
+      subgoals?: Array<NexusGenInputs['InputSubGoal'] | null> | null; // [InputSubGoal]
       type: string; // String!
     }
   }
@@ -165,7 +184,7 @@ export interface NexusGenTypeInterfaces {
 
 export type NexusGenObjectNames = keyof NexusGenObjects;
 
-export type NexusGenInputNames = never;
+export type NexusGenInputNames = keyof NexusGenInputs;
 
 export type NexusGenEnumNames = never;
 

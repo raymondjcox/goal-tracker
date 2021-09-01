@@ -25,20 +25,35 @@ import { useMutation } from "@apollo/client"
 import { Goal } from "@prisma/client"
 
 const GoalCreateMutation = gql`
-  mutation GoalCreateMutation($name: String!, $type: String!) {
-    createGoal(name: $name, type: $type) {
+  mutation GoalCreateMutation(
+    $name: String!
+    $type: String!
+    $subgoals: [InputSubGoal!]
+  ) {
+    createGoal(name: $name, type: $type, subgoals: $subgoals) {
       name
       type
+      subgoals {
+        completed
+      }
     }
   }
 `
 
 const GoalUpdateMutation = gql`
-  mutation GoalUpdateMutation($name: String!, $type: String!, $id: Int!) {
-    updateGoal(name: $name, type: $type, id: $id) {
+  mutation GoalUpdateMutation(
+    $name: String!
+    $type: String!
+    $id: Int!
+    $subgoals: [InputSubGoal!]
+  ) {
+    updateGoal(name: $name, type: $type, id: $id, subgoals: $subgoals) {
       name
       type
       id
+      subgoals {
+        completed
+      }
     }
   }
 `
@@ -52,12 +67,23 @@ const CreateOrUpdateGoalModal: React.FC<{
   const defaultValue = "personal"
   const [type, setType] = useState(defaultValue)
   const [subgoals, setSubgoals] = useState([])
-  const [newSubgoalName, setNewSubgoalName] = useState<string>("Add a subgoal")
+  const DEFAULT_SUBGOAL_TEXT = "Add a subgoal"
+  const [newSubgoalName, setNewSubgoalName] =
+    useState<string>(DEFAULT_SUBGOAL_TEXT)
 
   useEffect(() => {
     if (isOpen) {
       setType(goal?.type ?? defaultValue)
       setName(goal?.name ?? "")
+      setNewSubgoalName(DEFAULT_SUBGOAL_TEXT)
+      setSubgoals(
+        goal?.subgoals?.map(({ id, name, completed, createdAt }) => ({
+          id,
+          name,
+          completed,
+          createdAt: new Date(),
+        })) ?? []
+      )
     }
   }, [isOpen, goal])
 
@@ -86,7 +112,7 @@ const CreateOrUpdateGoalModal: React.FC<{
             />
           </FormControl>
           <FormControl as="fieldset" mt="6">
-            <FormLabel as="legend">Goal Type</FormLabel>
+            <FormLabel as="legend">Goal type</FormLabel>
             <RadioGroup value={type} onChange={type => setType(type)}>
               <Stack>
                 <Radio value="personal" colorScheme="blue">
@@ -103,6 +129,13 @@ const CreateOrUpdateGoalModal: React.FC<{
             <FormLabel as="legend">Subgoals</FormLabel>
 
             <Stack>
+              {subgoals.map(s => (
+                <Editable value={s.name}>
+                  <EditablePreview />
+                  <EditableInput />
+                </Editable>
+              ))}
+
               <Editable
                 value={newSubgoalName}
                 onChange={nextValue => {
@@ -110,21 +143,19 @@ const CreateOrUpdateGoalModal: React.FC<{
                 }}
                 onSubmit={() => {
                   setSubgoals(s => [
-                    { name: newSubgoalName, completed: false },
                     ...s,
+                    {
+                      name: newSubgoalName,
+                      completed: false,
+                      createdAt: new Date(),
+                    },
                   ])
-                  setNewSubgoalName("Add a subgoal")
+                  setNewSubgoalName(DEFAULT_SUBGOAL_TEXT)
                 }}
               >
                 <EditablePreview color="gray.500" />
                 <EditableInput />
               </Editable>
-              {subgoals.map(s => (
-                <Editable value={s.name}>
-                  <EditablePreview />
-                  <EditableInput />
-                </Editable>
-              ))}
             </Stack>
           </FormControl>
         </ModalBody>
@@ -134,8 +165,10 @@ const CreateOrUpdateGoalModal: React.FC<{
             <Button
               onClick={() => {
                 goal
-                  ? updateGoal({ variables: { name, type, id: goal.id } })
-                  : createGoal({ variables: { name, type } })
+                  ? updateGoal({
+                      variables: { name, type, id: goal.id, subgoals },
+                    })
+                  : createGoal({ variables: { name, type, subgoals } })
                 onClose()
               }}
               colorScheme="green"

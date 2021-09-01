@@ -113,6 +113,13 @@ const GoalQuery = gql`
       id
       name
       type
+      subgoals {
+        id
+        name
+        completed
+        createdAt
+        goalId
+      }
     }
   }
 `

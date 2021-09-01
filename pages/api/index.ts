@@ -6,8 +6,10 @@ import {
   intArg,
   makeSchema,
   nonNull,
+  inputObjectType,
   objectType,
   stringArg,
+  list,
 } from "nexus"
 import path from "path"
 import cors from "micro-cors"
@@ -24,6 +26,37 @@ const User = objectType({
   },
 })
 
+const SubGoal = objectType({
+  name: "SubGoal",
+  definition(t) {
+    t.int("id")
+    t.string("name")
+    t.boolean("completed")
+    t.date("createdAt")
+    t.int("goalId")
+    t.field("goal", {
+      type: "Goal",
+      resolve: parent =>
+        prisma.goal
+          .findUnique({
+            where: { id: Number(parent.id) },
+          })
+          .goal(),
+    })
+  },
+})
+
+const InputSubGoal = inputObjectType({
+  name: "InputSubGoal",
+  definition(t) {
+    t.int("id")
+    t.string("name")
+    t.boolean("completed")
+    t.date("createdAt")
+    t.int("goalId")
+  },
+})
+
 const Goal = objectType({
   name: "Goal",
   definition(t) {
@@ -31,15 +64,15 @@ const Goal = objectType({
     t.string("name")
     t.string("type")
     t.date("createdAt")
-  },
-})
-
-const Task = objectType({
-  name: "Task",
-  definition(t) {
-    t.int("id")
-    t.string("name")
-    t.date("createdAt")
+    t.list.field("subgoals", {
+      type: "SubGoal",
+      resolve: parent =>
+        prisma.goal
+          .findUnique({
+            where: { id: Number(parent.id) },
+          })
+          .subgoals(),
+    })
   },
 })
 
@@ -90,13 +123,17 @@ const Mutation = objectType({
       type: "Goal",
       args: {
         name: nonNull(stringArg()),
+        subgoals: list("InputSubGoal"),
         type: nonNull(stringArg()),
       },
-      resolve: (_, { name, type }) => {
+      resolve: (_, { name, type, subgoals }) => {
         return prisma.goal.create({
           data: {
             name,
             type,
+            subgoals: {
+              create: subgoals,
+            },
           },
         })
       },
@@ -107,9 +144,15 @@ const Mutation = objectType({
       args: {
         name: nonNull(stringArg()),
         type: nonNull(stringArg()),
+        subgoals: list("InputSubGoal"),
         id: nonNull(intArg()),
       },
-      resolve: (_, { name, type, id }) => {
+      resolve: (_, { name, type, id, subgoals }) => {
+        const upsert = subgoals.map(subgoal => ({
+          create: { ...subgoal },
+          update: { ...subgoal },
+          where: { id: subgoal.id ?? -1 },
+        }))
         return prisma.goal.update({
           where: {
             id,
@@ -117,6 +160,9 @@ const Mutation = objectType({
           data: {
             name,
             type,
+            subgoals: {
+              upsert,
+            },
           },
         })
       },
@@ -139,7 +185,7 @@ const Mutation = objectType({
 })
 
 export const schema = makeSchema({
-  types: [Query, Mutation, Goal, Task, User, GQLDate],
+  types: [Query, Mutation, Goal, SubGoal, InputSubGoal, User, GQLDate],
   outputs: {
     typegen: path.join(process.cwd(), "generated/nexus-typegen.ts"),
     schema: path.join(process.cwd(), "generated/schema.graphql"),

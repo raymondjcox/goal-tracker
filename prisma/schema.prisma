@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["referentialActions"]
 }
 
 datasource db {
@@ -14,15 +15,18 @@ model User {
 }
 
 model Goal {
-  name   String
-  type   String   
-  id        Int     @default(autoincrement()) @id
+  name       String
+  type       String   
+  subgoals   SubGoal[]
+  id         Int     @default(autoincrement()) @id
   createdAt  DateTime   @default(now())
 }
 
-model Task {
+model SubGoal {
   name        String
   id          Int     @default(autoincrement()) @id
+  goalId      Int
+  goal        Goal   @relation(fields: [goalId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   completed   Boolean
   createdAt   DateTime   @default(now())
 }

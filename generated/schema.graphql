@@ -11,14 +11,23 @@ type Goal {
   createdAt: DateTime
   id: Int
   name: String
+  subgoals: [SubGoal]
   type: String
 }
 
+input InputSubGoal {
+  completed: Boolean
+  createdAt: DateTime
+  goalId: Int
+  id: Int
+  name: String
+}
+
 type Mutation {
-  createGoal(name: String!, type: String!): Goal
+  createGoal(name: String!, subgoals: [InputSubGoal], type: String!): Goal
   deleteGoal(id: Int!): Goal
   signupUser(email: String!, name: String): User
-  updateGoal(id: Int!, name: String!, type: String!): Goal
+  updateGoal(id: Int!, name: String!, subgoals: [InputSubGoal], type: String!): Goal
 }
 
 type Query {
@@ -26,8 +35,11 @@ type Query {
   goals: [Goal]
 }
 
-type Task {
+type SubGoal {
+  completed: Boolean
   createdAt: DateTime
+  goal: Goal
+  goalId: Int
   id: Int
   name: String
 }
