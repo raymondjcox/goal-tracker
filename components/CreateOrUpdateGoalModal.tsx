@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Flex, IconButton } from "@chakra-ui/react"
 import {
   Button,
   ButtonGroup,
@@ -20,6 +21,7 @@ import {
   FormControl,
   FormLabel,
 } from "@chakra-ui/react"
+import { CheckIcon } from "@chakra-ui/icons"
 import gql from "graphql-tag"
 import { useMutation } from "@apollo/client"
 import { Goal } from "@prisma/client"
@@ -81,7 +83,6 @@ const CreateOrUpdateGoalModal: React.FC<{
           id,
           name,
           completed,
-          createdAt: new Date(),
         })) ?? []
       )
     }
@@ -128,16 +129,57 @@ const CreateOrUpdateGoalModal: React.FC<{
           <FormControl as="fieldset" mt="6">
             <FormLabel as="legend">Subgoals</FormLabel>
 
-            <Stack>
-              {subgoals.map(s => (
-                <Editable value={s.name}>
-                  <EditablePreview />
-                  <EditableInput />
-                </Editable>
+            <Stack mb="5">
+              {subgoals.map((s, i) => (
+                <Flex>
+                  <Editable
+                    color={s.completed ? "gray.600" : "black"}
+                    fontStyle={s.completed ? "italic" : "normal"}
+                    value={s.name}
+                    mr="5"
+                    mb="2"
+                    onChange={e => {
+                      setSubgoals(sg => {
+                        const copy = [...sg]
+                        copy[i] = {
+                          ...copy[i],
+                          name: e,
+                        }
+                        return copy
+                      })
+                    }}
+                    w="100%"
+                  >
+                    <EditablePreview
+                      textDecoration={s.completed ? "line-through" : "none"}
+                      w="100%"
+                    />
+                    <EditableInput w="100%" />
+                  </Editable>
+
+                  <IconButton
+                    borderRadius={100}
+                    onClick={() => {
+                      setSubgoals(sg => {
+                        const copy = [...sg]
+                        copy[i] = {
+                          ...copy[i],
+                          completed: !copy[i].completed,
+                        }
+                        return copy
+                      })
+                    }}
+                    colorScheme={s.completed ? "green" : "gray"}
+                    ml="auto"
+                    size="sm"
+                    icon={<CheckIcon />}
+                  />
+                </Flex>
               ))}
 
               <Editable
                 value={newSubgoalName}
+                w="100%"
                 onChange={nextValue => {
                   setNewSubgoalName(nextValue)
                 }}
@@ -153,8 +195,8 @@ const CreateOrUpdateGoalModal: React.FC<{
                   setNewSubgoalName(DEFAULT_SUBGOAL_TEXT)
                 }}
               >
-                <EditablePreview color="gray.500" />
-                <EditableInput />
+                <EditablePreview w="100%" color="gray.500" />
+                <EditableInput w="100%" />
               </Editable>
             </Stack>
           </FormControl>
