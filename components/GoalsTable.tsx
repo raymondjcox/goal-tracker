@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import CreateOrUpdateGoalModal from "../components/CreateOrUpdateGoalModal"
+import CreateOrUpdateGoalModal from "./CreateOrUpdateGoalModal"
+import SubgoalsModal from "./SubgoalsModal"
 import {
   Box,
   Button,
@@ -127,6 +128,7 @@ const GoalQuery = gql`
 const GoalsTable: React.FC = () => {
   const { data, loading, error } = useQuery<{ goals: Goal[] }>(GoalQuery)
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
+  const [showingSubgoals, setShowingSubgoals] = useState<Goal | null>(null)
   const [deleteGoal] = useMutation(GoalDeleteMutation, {
     refetchQueries: ["GoalQuery"],
   })
@@ -138,6 +140,13 @@ const GoalsTable: React.FC = () => {
         isOpen={!!editingGoal}
         onClose={() => setEditingGoal(null)}
       />
+      {showingSubgoals && (
+        <SubgoalsModal
+          goal={showingSubgoals}
+          isOpen={true}
+          onClose={() => setShowingSubgoals(null)}
+        />
+      )}
       <Box maxH="100%">
         {loading ? (
           <Center>
@@ -193,6 +202,9 @@ const GoalsTable: React.FC = () => {
                         <MenuList>
                           <MenuItem onClick={() => setEditingGoal(goal)}>
                             Edit
+                          </MenuItem>
+                          <MenuItem onClick={() => setShowingSubgoals(goal)}>
+                            Subgoals
                           </MenuItem>
                           <MenuItem
                             color="red"

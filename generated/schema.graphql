@@ -33,6 +33,7 @@ type Mutation {
 type Query {
   goal(goalId: String!): Goal
   goals: [Goal]
+  subgoals(goalId: Int!): [SubGoal]
 }
 
 type SubGoal {

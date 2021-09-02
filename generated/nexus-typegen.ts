@@ -99,6 +99,7 @@ export interface NexusGenFieldTypes {
   Query: { // field return type
     goal: NexusGenRootTypes['Goal'] | null; // Goal
     goals: Array<NexusGenRootTypes['Goal'] | null> | null; // [Goal]
+    subgoals: Array<NexusGenRootTypes['SubGoal'] | null> | null; // [SubGoal]
   }
   SubGoal: { // field return type
     completed: boolean | null; // Boolean
@@ -132,6 +133,7 @@ export interface NexusGenFieldTypeNames {
   Query: { // field return type name
     goal: 'Goal'
     goals: 'Goal'
+    subgoals: 'SubGoal'
   }
   SubGoal: { // field return type name
     completed: 'Boolean'
@@ -172,6 +174,9 @@ export interface NexusGenArgTypes {
   Query: {
     goal: { // args
       goalId: string; // String!
+    }
+    subgoals: { // args
+      goalId: number; // Int!
     }
   }
 }

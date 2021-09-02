@@ -97,6 +97,19 @@ const Query = objectType({
         return prisma.goal.findMany({ orderBy: [{ createdAt: "desc" }] })
       },
     })
+
+    t.list.field("subgoals", {
+      type: "SubGoal",
+      args: {
+        goalId: nonNull(intArg()),
+      },
+      resolve: (_parent, { goalId }) => {
+        return prisma.subGoal.findMany({
+          where: { goalId },
+          orderBy: [{ createdAt: "desc" }],
+        })
+      },
+    })
   },
 })
 
