@@ -9,6 +9,7 @@ import {
   inputObjectType,
   objectType,
   stringArg,
+  booleanArg,
   list,
 } from "nexus"
 import path from "path"
@@ -106,7 +107,7 @@ const Query = objectType({
       resolve: (_parent, { goalId }) => {
         return prisma.subGoal.findMany({
           where: { goalId },
-          orderBy: [{ createdAt: "desc" }],
+          orderBy: [{ createdAt: "asc" }],
         })
       },
     })
@@ -136,17 +137,64 @@ const Mutation = objectType({
       type: "Goal",
       args: {
         name: nonNull(stringArg()),
-        subgoals: list("InputSubGoal"),
         type: nonNull(stringArg()),
       },
-      resolve: (_, { name, type, subgoals }) => {
+      resolve: (_, { name, type }) => {
         return prisma.goal.create({
           data: {
             name,
             type,
-            subgoals: {
-              create: subgoals,
-            },
+          },
+        })
+      },
+    })
+
+    t.field("deleteSubgoal", {
+      type: "SubGoal",
+      args: {
+        id: nonNull(intArg()),
+      },
+      resolve: (_, { id }) => {
+        return prisma.subGoal.delete({
+          where: {
+            id,
+          },
+        })
+      },
+    })
+
+    t.field("createSubgoal", {
+      type: "SubGoal",
+      args: {
+        name: nonNull(stringArg()),
+        goalId: nonNull(intArg()),
+      },
+      resolve: (_, { name, goalId }) => {
+        return prisma.subGoal.create({
+          data: {
+            name,
+            goalId,
+            completed: false,
+          },
+        })
+      },
+    })
+
+    t.field("updateSubgoal", {
+      type: "SubGoal",
+      args: {
+        name: nonNull(stringArg()),
+        completed: nonNull(booleanArg()),
+        id: nonNull(intArg()),
+      },
+      resolve: (_, { name, completed, id }) => {
+        return prisma.subGoal.update({
+          where: {
+            id,
+          },
+          data: {
+            name,
+            completed,
           },
         })
       },
@@ -157,15 +205,9 @@ const Mutation = objectType({
       args: {
         name: nonNull(stringArg()),
         type: nonNull(stringArg()),
-        subgoals: list("InputSubGoal"),
         id: nonNull(intArg()),
       },
-      resolve: (_, { name, type, id, subgoals }) => {
-        const upsert = subgoals.map(subgoal => ({
-          create: { ...subgoal },
-          update: { ...subgoal },
-          where: { id: subgoal.id ?? -1 },
-        }))
+      resolve: (_, { name, type, id }) => {
         return prisma.goal.update({
           where: {
             id,
@@ -173,9 +215,6 @@ const Mutation = objectType({
           data: {
             name,
             type,
-            subgoals: {
-              upsert,
-            },
           },
         })
       },

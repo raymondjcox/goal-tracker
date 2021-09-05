@@ -24,10 +24,13 @@ input InputSubGoal {
 }
 
 type Mutation {
-  createGoal(name: String!, subgoals: [InputSubGoal], type: String!): Goal
+  createGoal(name: String!, type: String!): Goal
+  createSubgoal(goalId: Int!, name: String!): SubGoal
   deleteGoal(id: Int!): Goal
+  deleteSubgoal(id: Int!): SubGoal
   signupUser(email: String!, name: String): User
-  updateGoal(id: Int!, name: String!, subgoals: [InputSubGoal], type: String!): Goal
+  updateGoal(id: Int!, name: String!, type: String!): Goal
+  updateSubgoal(completed: Boolean!, id: Int!, name: String!): SubGoal
 }
 
 type Query {

@@ -92,9 +92,12 @@ export interface NexusGenFieldTypes {
   }
   Mutation: { // field return type
     createGoal: NexusGenRootTypes['Goal'] | null; // Goal
+    createSubgoal: NexusGenRootTypes['SubGoal'] | null; // SubGoal
     deleteGoal: NexusGenRootTypes['Goal'] | null; // Goal
+    deleteSubgoal: NexusGenRootTypes['SubGoal'] | null; // SubGoal
     signupUser: NexusGenRootTypes['User'] | null; // User
     updateGoal: NexusGenRootTypes['Goal'] | null; // Goal
+    updateSubgoal: NexusGenRootTypes['SubGoal'] | null; // SubGoal
   }
   Query: { // field return type
     goal: NexusGenRootTypes['Goal'] | null; // Goal
@@ -126,9 +129,12 @@ export interface NexusGenFieldTypeNames {
   }
   Mutation: { // field return type name
     createGoal: 'Goal'
+    createSubgoal: 'SubGoal'
     deleteGoal: 'Goal'
+    deleteSubgoal: 'SubGoal'
     signupUser: 'User'
     updateGoal: 'Goal'
+    updateSubgoal: 'SubGoal'
   }
   Query: { // field return type name
     goal: 'Goal'
@@ -154,10 +160,16 @@ export interface NexusGenArgTypes {
   Mutation: {
     createGoal: { // args
       name: string; // String!
-      subgoals?: Array<NexusGenInputs['InputSubGoal'] | null> | null; // [InputSubGoal]
       type: string; // String!
     }
+    createSubgoal: { // args
+      goalId: number; // Int!
+      name: string; // String!
+    }
     deleteGoal: { // args
+      id: number; // Int!
+    }
+    deleteSubgoal: { // args
       id: number; // Int!
     }
     signupUser: { // args
@@ -167,8 +179,12 @@ export interface NexusGenArgTypes {
     updateGoal: { // args
       id: number; // Int!
       name: string; // String!
-      subgoals?: Array<NexusGenInputs['InputSubGoal'] | null> | null; // [InputSubGoal]
       type: string; // String!
+    }
+    updateSubgoal: { // args
+      completed: boolean; // Boolean!
+      id: number; // Int!
+      name: string; // String!
     }
   }
   Query: {

@@ -200,11 +200,11 @@ const GoalsTable: React.FC = () => {
                           </MenuButton>
                         </Flex>
                         <MenuList>
-                          <MenuItem onClick={() => setEditingGoal(goal)}>
-                            Edit
-                          </MenuItem>
                           <MenuItem onClick={() => setShowingSubgoals(goal)}>
-                            Subgoals
+                            Edit Subgoals
+                          </MenuItem>
+                          <MenuItem onClick={() => setEditingGoal(goal)}>
+                            Edit Goal
                           </MenuItem>
                           <MenuItem
                             color="red"

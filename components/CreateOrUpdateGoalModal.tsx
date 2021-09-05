@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { Flex, IconButton } from "@chakra-ui/react"
 import {
   Button,
   ButtonGroup,
@@ -21,41 +20,25 @@ import {
   FormControl,
   FormLabel,
 } from "@chakra-ui/react"
-import { CheckIcon } from "@chakra-ui/icons"
 import gql from "graphql-tag"
 import { useMutation } from "@apollo/client"
 import { Goal } from "@prisma/client"
 
 const GoalCreateMutation = gql`
-  mutation GoalCreateMutation(
-    $name: String!
-    $type: String!
-    $subgoals: [InputSubGoal!]
-  ) {
-    createGoal(name: $name, type: $type, subgoals: $subgoals) {
+  mutation GoalCreateMutation($name: String!, $type: String!) {
+    createGoal(name: $name, type: $type) {
       name
       type
-      subgoals {
-        completed
-      }
     }
   }
 `
 
 const GoalUpdateMutation = gql`
-  mutation GoalUpdateMutation(
-    $name: String!
-    $type: String!
-    $id: Int!
-    $subgoals: [InputSubGoal!]
-  ) {
-    updateGoal(name: $name, type: $type, id: $id, subgoals: $subgoals) {
+  mutation GoalUpdateMutation($name: String!, $type: String!, $id: Int!) {
+    updateGoal(name: $name, type: $type, id: $id) {
       name
       type
       id
-      subgoals {
-        completed
-      }
     }
   }
 `
@@ -68,7 +51,6 @@ const CreateOrUpdateGoalModal: React.FC<{
   const [name, setName] = useState("")
   const defaultValue = "personal"
   const [type, setType] = useState(defaultValue)
-  const [subgoals, setSubgoals] = useState([])
   const DEFAULT_SUBGOAL_TEXT = "Add a subgoal"
   const [newSubgoalName, setNewSubgoalName] =
     useState<string>(DEFAULT_SUBGOAL_TEXT)
@@ -78,13 +60,6 @@ const CreateOrUpdateGoalModal: React.FC<{
       setType(goal?.type ?? defaultValue)
       setName(goal?.name ?? "")
       setNewSubgoalName(DEFAULT_SUBGOAL_TEXT)
-      setSubgoals(
-        goal?.subgoals?.map(({ id, name, completed, createdAt }) => ({
-          id,
-          name,
-          completed,
-        })) ?? []
-      )
     }
   }, [isOpen, goal])
 
@@ -125,81 +100,6 @@ const CreateOrUpdateGoalModal: React.FC<{
               </Stack>
             </RadioGroup>
           </FormControl>
-
-          <FormControl as="fieldset" mt="6">
-            <FormLabel as="legend">Subgoals</FormLabel>
-
-            <Stack mb="5">
-              {subgoals.map((s, i) => (
-                <Flex>
-                  <Editable
-                    color={s.completed ? "gray.600" : "black"}
-                    fontStyle={s.completed ? "italic" : "normal"}
-                    value={s.name}
-                    mr="5"
-                    mb="2"
-                    onChange={e => {
-                      setSubgoals(sg => {
-                        const copy = [...sg]
-                        copy[i] = {
-                          ...copy[i],
-                          name: e,
-                        }
-                        return copy
-                      })
-                    }}
-                    w="100%"
-                  >
-                    <EditablePreview
-                      textDecoration={s.completed ? "line-through" : "none"}
-                      w="100%"
-                    />
-                    <EditableInput w="100%" />
-                  </Editable>
-
-                  <IconButton
-                    borderRadius={100}
-                    onClick={() => {
-                      setSubgoals(sg => {
-                        const copy = [...sg]
-                        copy[i] = {
-                          ...copy[i],
-                          completed: !copy[i].completed,
-                        }
-                        return copy
-                      })
-                    }}
-                    colorScheme={s.completed ? "green" : "gray"}
-                    ml="auto"
-                    size="sm"
-                    icon={<CheckIcon />}
-                  />
-                </Flex>
-              ))}
-
-              <Editable
-                value={newSubgoalName}
-                w="100%"
-                onChange={nextValue => {
-                  setNewSubgoalName(nextValue)
-                }}
-                onSubmit={() => {
-                  setSubgoals(s => [
-                    ...s,
-                    {
-                      name: newSubgoalName,
-                      completed: false,
-                      createdAt: new Date(),
-                    },
-                  ])
-                  setNewSubgoalName(DEFAULT_SUBGOAL_TEXT)
-                }}
-              >
-                <EditablePreview w="100%" color="gray.500" />
-                <EditableInput w="100%" />
-              </Editable>
-            </Stack>
-          </FormControl>
         </ModalBody>
         <ModalFooter>
           <ButtonGroup spacing="6">
@@ -208,9 +108,9 @@ const CreateOrUpdateGoalModal: React.FC<{
               onClick={() => {
                 goal
                   ? updateGoal({
-                      variables: { name, type, id: goal.id, subgoals },
+                      variables: { name, type, id: goal.id },
                     })
-                  : createGoal({ variables: { name, type, subgoals } })
+                  : createGoal({ variables: { name, type } })
                 onClose()
               }}
               colorScheme="green"

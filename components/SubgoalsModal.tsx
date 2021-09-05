@@ -1,27 +1,19 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Flex, IconButton, useEditableControls } from "@chakra-ui/react"
 import {
-  Button,
   ButtonGroup,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalCloseButton,
   ModalBody,
-  Input,
   ModalHeader,
-  ModalFooter,
-  Badge,
   Stack,
-  Radio,
-  RadioGroup,
   Editable,
   EditableInput,
   EditablePreview,
-  FormControl,
-  FormLabel,
 } from "@chakra-ui/react"
-import { CheckIcon, CloseIcon, EditIcon } from "@chakra-ui/icons"
+import { CheckIcon, SmallCloseIcon, CloseIcon } from "@chakra-ui/icons"
 import gql from "graphql-tag"
 import { useMutation, useQuery } from "@apollo/client"
 import { Goal, SubGoal } from "@prisma/client"
@@ -36,22 +28,105 @@ const SubgoalQuery = gql`
   }
 `
 
+const SubgoalUpdateMutation = gql`
+  mutation SubgoalUpdateMutation(
+    $name: String!
+    $completed: Boolean!
+    $id: Int!
+  ) {
+    updateSubgoal(name: $name, completed: $completed, id: $id) {
+      name
+      completed
+      id
+    }
+  }
+`
+
+const SubgoalCreateMutation = gql`
+  mutation SubgoalCreateMutation($name: String!, $goalId: Int!) {
+    createSubgoal(name: $name, goalId: $goalId) {
+      name
+      goalId
+    }
+  }
+`
+
+const SubgoalDeleteMutation = gql`
+  mutation SubgoalDeleteMutation($id: Int!) {
+    deleteSubgoal(id: $id) {
+      id
+    }
+  }
+`
+
 const SubgoalItem: React.FC<{
   subgoal: SubGoal
 }> = ({ subgoal }) => {
+  const [completed, setCompleted] = useState(subgoal.completed)
+  const [name, setName] = useState(subgoal.name)
+  const [updateSubgoal] = useMutation(SubgoalUpdateMutation, {
+    refetchQueries: ["SubgoalQuery"],
+  })
+  const [deleteSubgoal] = useMutation(SubgoalDeleteMutation, {
+    refetchQueries: ["SubgoalQuery"],
+  })
+
   return (
     <Flex>
-      <Editable value={subgoal.name} w="100%" mr="5">
+      <Editable
+        value={name}
+        w="100%"
+        mr="5"
+        onChange={nextName => {
+          setName(nextName)
+        }}
+        onSubmit={() => {
+          updateSubgoal({
+            variables: {
+              id: subgoal.id,
+              completed,
+              name,
+            },
+          })
+        }}
+      >
         <EditablePreview w="100%" />
         <EditableInput w="100%" />
       </Editable>
-      <IconButton
-        borderRadius={100}
-        colorScheme={subgoal.completed ? "green" : "gray"}
-        ml="auto"
-        size="sm"
-        icon={<CheckIcon />}
-      />
+      <Flex alignItems="center">
+        <IconButton
+          aria-label="CompleteButton"
+          borderRadius={100}
+          colorScheme={completed ? "green" : "gray"}
+          onClick={() => {
+            updateSubgoal({
+              variables: {
+                id: subgoal.id,
+                completed: !completed,
+                name,
+              },
+            })
+            setCompleted(prev => !prev)
+          }}
+          size="sm"
+          icon={<CheckIcon />}
+        />
+        <IconButton
+          aria-label="DeleteButton"
+          variant="ghost"
+          colorScheme="red"
+          onClick={() => {
+            deleteSubgoal({
+              variables: {
+                id: subgoal.id,
+              },
+            })
+          }}
+          ml="2"
+          size="xs"
+          icon={<SmallCloseIcon />}
+        />
+      </Flex>
     </Flex>
   )
 }
@@ -70,8 +145,11 @@ function EditableControls() {
   )
 }
 
-const AddNewSubgoal = () => {
+const AddNewSubgoal: React.FC<{ goalId: number }> = ({ goalId }) => {
   const [newSubgoalName, setNewSubgoalName] = useState("")
+  const [createSubgoal] = useMutation(SubgoalCreateMutation, {
+    refetchQueries: ["SubgoalQuery"],
+  })
 
   return (
     <Editable
@@ -80,6 +158,18 @@ const AddNewSubgoal = () => {
       placeholder="Add new subgoal"
       onChange={nextValue => {
         setNewSubgoalName(nextValue)
+      }}
+      onSubmit={() => {
+        if (!newSubgoalName) {
+          return
+        }
+        createSubgoal({
+          variables: {
+            name: newSubgoalName,
+            goalId,
+          },
+        })
+        setNewSubgoalName("")
       }}
     >
       <EditablePreview w="100%" color="gray.500" />
@@ -114,9 +204,9 @@ const SubgoalsModal: React.FC<{
         <ModalBody>
           <Stack spacing="4" pb="4">
             {data?.subgoals?.map(subgoal => (
-              <SubgoalItem subgoal={subgoal} />
+              <SubgoalItem key={subgoal.id} subgoal={subgoal} />
             ))}
-            <AddNewSubgoal />
+            <AddNewSubgoal goalId={goal.id} />
           </Stack>
         </ModalBody>
       </ModalContent>
