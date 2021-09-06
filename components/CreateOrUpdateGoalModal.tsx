@@ -77,7 +77,7 @@ const CreateOrUpdateGoalModal: React.FC<{
         <ModalHeader>{goal ? "Update goal" : "Add new goal"}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <FormControl id="name">
+          <FormControl id="name" isRequired>
             <FormLabel>Goal name</FormLabel>
             <Input
               onChange={e => setName(e.target.value)}
@@ -87,7 +87,7 @@ const CreateOrUpdateGoalModal: React.FC<{
               size="md"
             />
           </FormControl>
-          <FormControl as="fieldset" mt="6">
+          <FormControl as="fieldset" mt="6" isRequired>
             <FormLabel as="legend">Goal type</FormLabel>
             <RadioGroup value={type} onChange={type => setType(type)}>
               <Stack>
@@ -105,6 +105,7 @@ const CreateOrUpdateGoalModal: React.FC<{
           <ButtonGroup spacing="6">
             <Button onClick={onClose}>Cancel</Button>
             <Button
+              type="submit"
               onClick={() => {
                 goal
                   ? updateGoal({

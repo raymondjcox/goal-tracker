@@ -65,10 +65,10 @@ const SubgoalItem: React.FC<{
   const [completed, setCompleted] = useState(subgoal.completed)
   const [name, setName] = useState(subgoal.name)
   const [updateSubgoal] = useMutation(SubgoalUpdateMutation, {
-    refetchQueries: ["SubgoalQuery"],
+    refetchQueries: ["SubgoalQuery", "GoalQuery"],
   })
   const [deleteSubgoal] = useMutation(SubgoalDeleteMutation, {
-    refetchQueries: ["SubgoalQuery"],
+    refetchQueries: ["SubgoalQuery", "GoalQuery"],
   })
 
   return (
@@ -90,7 +90,12 @@ const SubgoalItem: React.FC<{
           })
         }}
       >
-        <EditablePreview w="100%" />
+        <EditablePreview
+          w="100%"
+          textDecoration={subgoal.completed ? "line-through" : "none"}
+          color={subgoal.completed ? "gray.600" : "black"}
+          fontStyle={subgoal.completed ? "italic" : "normal"}
+        />
         <EditableInput w="100%" />
       </Editable>
       <Flex alignItems="center">
@@ -123,7 +128,7 @@ const SubgoalItem: React.FC<{
             })
           }}
           ml="2"
-          size="xs"
+          size="sm"
           icon={<SmallCloseIcon />}
         />
       </Flex>
@@ -137,8 +142,8 @@ function EditableControls() {
 
   return isEditing ? (
     <ButtonGroup justifyContent="center" size="sm">
-      <IconButton size="xs" icon={<CheckIcon />} {...getSubmitButtonProps()} />
-      <IconButton size="xs" icon={<CloseIcon />} {...getCancelButtonProps()} />
+      <IconButton size="sm" icon={<CheckIcon />} {...getSubmitButtonProps()} />
+      <IconButton size="sm" icon={<CloseIcon />} {...getCancelButtonProps()} />
     </ButtonGroup>
   ) : (
     <></>
@@ -148,7 +153,7 @@ function EditableControls() {
 const AddNewSubgoal: React.FC<{ goalId: number }> = ({ goalId }) => {
   const [newSubgoalName, setNewSubgoalName] = useState("")
   const [createSubgoal] = useMutation(SubgoalCreateMutation, {
-    refetchQueries: ["SubgoalQuery"],
+    refetchQueries: ["SubgoalQuery", "GoalQuery"],
   })
 
   return (

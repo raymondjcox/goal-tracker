@@ -24,6 +24,7 @@ import {
   AccordionItem,
   AccordionIcon,
   AccordionPanel,
+  CircularProgress,
 } from "@chakra-ui/react"
 import gql from "graphql-tag"
 import { useMutation, useQuery } from "@apollo/client"
@@ -115,15 +116,77 @@ const GoalQuery = gql`
       name
       type
       subgoals {
-        id
-        name
         completed
-        createdAt
-        goalId
       }
     }
   }
 `
+
+const GoalRow: React.FC<{
+  goal: Goal
+  setShowingSubgoals: (goal: Goal) => void
+  setEditingGoal: (goal: Goal) => void
+  deleteGoal: (query: any) => void
+}> = ({ goal, setShowingSubgoals, setEditingGoal, deleteGoal }) => {
+  const allSubgoalsCount = goal.subgoals.length
+  const completedSubgoalsCount = goal.subgoals.reduce(
+    (acc, subgoal) => (acc += subgoal.completed ? 1 : 0),
+    0
+  )
+  const incompleteSubgoalsCount = allSubgoalsCount - completedSubgoalsCount
+
+  return (
+    <Tr key={goal.id}>
+      <Td>
+        <Flex fontWeight="semibold" color="gray.600">
+          <CircularProgress
+            size="24px"
+            value={completedSubgoalsCount}
+            max={allSubgoalsCount}
+            color="blue.200"
+            thickness="16px"
+            mr="4"
+          ></CircularProgress>
+          <Box>{goal.name}</Box>
+        </Flex>
+      </Td>
+      <Td>
+        {goal.type === "work" ? (
+          <Badge colorScheme="green">Work</Badge>
+        ) : (
+          <Badge colorScheme="blue">Personal</Badge>
+        )}
+      </Td>
+      <Td align="right">
+        <Menu>
+          <Flex>
+            <MenuButton
+              marginLeft="auto"
+              fontWeight="bold"
+              size="sm"
+              as={Button}
+              variant="ghost"
+            >
+              ...
+            </MenuButton>
+          </Flex>
+          <MenuList>
+            <MenuItem onClick={() => setShowingSubgoals(goal)}>
+              Edit Subgoals
+            </MenuItem>
+            <MenuItem onClick={() => setEditingGoal(goal)}>Edit Goal</MenuItem>
+            <MenuItem
+              color="red"
+              onClick={() => deleteGoal({ variables: { id: goal.id } })}
+            >
+              Delete
+            </MenuItem>
+          </MenuList>
+        </Menu>
+      </Td>
+    </Tr>
+  )
+}
 
 const GoalsTable: React.FC = () => {
   const { data, loading, error } = useQuery<{ goals: Goal[] }>(GoalQuery)
@@ -172,52 +235,12 @@ const GoalsTable: React.FC = () => {
               </Thead>
               <Tbody>
                 {data?.goals.map(goal => (
-                  <Tr key={goal.id}>
-                    <Td>
-                      <Flex fontWeight="semibold" color="gray.600">
-                        {goal.name}
-                      </Flex>
-                    </Td>
-                    <Td>
-                      {goal.type === "work" ? (
-                        <Badge colorScheme="green">Work</Badge>
-                      ) : (
-                        <Badge colorScheme="blue">Personal</Badge>
-                      )}
-                    </Td>
-                    <Td align="right">
-                      <Menu>
-                        <Flex>
-                          <MenuButton
-                            marginLeft="auto"
-                            color="gray.500"
-                            fontWeight="bold"
-                            size="sm"
-                            as={Button}
-                            variant="ghost"
-                          >
-                            ...
-                          </MenuButton>
-                        </Flex>
-                        <MenuList>
-                          <MenuItem onClick={() => setShowingSubgoals(goal)}>
-                            Edit Subgoals
-                          </MenuItem>
-                          <MenuItem onClick={() => setEditingGoal(goal)}>
-                            Edit Goal
-                          </MenuItem>
-                          <MenuItem
-                            color="red"
-                            onClick={() =>
-                              deleteGoal({ variables: { id: goal.id } })
-                            }
-                          >
-                            Delete
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Td>
-                  </Tr>
+                  <GoalRow
+                    goal={goal}
+                    deleteGoal={deleteGoal}
+                    setShowingSubgoals={setShowingSubgoals}
+                    setEditingGoal={setEditingGoal}
+                  />
                 ))}
               </Tbody>
             </Table>
