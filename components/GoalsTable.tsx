@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import CreateOrUpdateGoalModal from "./CreateOrUpdateGoalModal"
 import SubgoalsModal from "./SubgoalsModal"
 import {
@@ -124,67 +125,77 @@ const GoalQuery = gql`
 
 const GoalRow: React.FC<{
   goal: Goal
+  index: number
   setShowingSubgoals: (goal: Goal) => void
   setEditingGoal: (goal: Goal) => void
   deleteGoal: (query: any) => void
-}> = ({ goal, setShowingSubgoals, setEditingGoal, deleteGoal }) => {
+}> = ({ goal, setShowingSubgoals, setEditingGoal, deleteGoal, index }) => {
   const allSubgoalsCount = goal.subgoals.length
   const completedSubgoalsCount = goal.subgoals.reduce(
     (acc, subgoal) => (acc += subgoal.completed ? 1 : 0),
     0
   )
-  const incompleteSubgoalsCount = allSubgoalsCount - completedSubgoalsCount
 
   return (
-    <Tr key={goal.id}>
-      <Td>
-        <Flex fontWeight="semibold" color="gray.600">
-          <CircularProgress
-            size="24px"
-            value={completedSubgoalsCount}
-            max={allSubgoalsCount}
-            color="blue.200"
-            thickness="16px"
-            mr="4"
-          ></CircularProgress>
-          <Box>{goal.name}</Box>
-        </Flex>
-      </Td>
-      <Td>
-        {goal.type === "work" ? (
-          <Badge colorScheme="green">Work</Badge>
-        ) : (
-          <Badge colorScheme="blue">Personal</Badge>
-        )}
-      </Td>
-      <Td align="right">
-        <Menu>
-          <Flex>
-            <MenuButton
-              marginLeft="auto"
-              fontWeight="bold"
-              size="sm"
-              as={Button}
-              variant="ghost"
-            >
-              ...
-            </MenuButton>
-          </Flex>
-          <MenuList>
-            <MenuItem onClick={() => setShowingSubgoals(goal)}>
-              Edit Subgoals
-            </MenuItem>
-            <MenuItem onClick={() => setEditingGoal(goal)}>Edit Goal</MenuItem>
-            <MenuItem
-              color="red"
-              onClick={() => deleteGoal({ variables: { id: goal.id } })}
-            >
-              Delete
-            </MenuItem>
-          </MenuList>
-        </Menu>
-      </Td>
-    </Tr>
+    <Draggable key={goal.id} draggableId={`${goal.id}`} index={index}>
+      {(provided, snapshot) => (
+        <Tr
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+        >
+          <Td>
+            <Flex fontWeight="semibold" color="gray.600">
+              <CircularProgress
+                size="24px"
+                value={completedSubgoalsCount}
+                max={allSubgoalsCount}
+                color="blue.200"
+                thickness="16px"
+                mr="4"
+              ></CircularProgress>
+              <Box>{goal.name}</Box>
+            </Flex>
+          </Td>
+          <Td>
+            {goal.type === "work" ? (
+              <Badge colorScheme="green">Work</Badge>
+            ) : (
+              <Badge colorScheme="blue">Personal</Badge>
+            )}
+          </Td>
+          <Td align="right">
+            <Menu>
+              <Flex>
+                <MenuButton
+                  marginLeft="auto"
+                  fontWeight="bold"
+                  size="sm"
+                  as={Button}
+                  variant="ghost"
+                >
+                  ...
+                </MenuButton>
+              </Flex>
+              <MenuList>
+                <MenuItem onClick={() => setShowingSubgoals(goal)}>
+                  Edit Subgoals
+                </MenuItem>
+                <MenuItem onClick={() => setEditingGoal(goal)}>
+                  Edit Goal
+                </MenuItem>
+                <MenuItem
+                  color="red"
+                  onClick={() => deleteGoal({ variables: { id: goal.id } })}
+                >
+                  Delete
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </Td>
+        </Tr>
+      )}
+    </Draggable>
   )
 }
 
@@ -224,27 +235,37 @@ const GoalsTable: React.FC = () => {
         ) : error ? (
           "ERROR"
         ) : (
-          <>
-            <Table size="lg">
-              <Thead>
-                <Tr>
-                  <Th></Th>
-                  <Th></Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {data?.goals.map(goal => (
-                  <GoalRow
-                    goal={goal}
-                    deleteGoal={deleteGoal}
-                    setShowingSubgoals={setShowingSubgoals}
-                    setEditingGoal={setEditingGoal}
-                  />
-                ))}
-              </Tbody>
-            </Table>
-          </>
+          <DragDropContext onDragEnd={() => console.log("END")}>
+            <Droppable droppableId="droppable">
+              {(provided, snapshot) => (
+                <Table
+                  size="lg"
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                >
+                  <Thead>
+                    <Tr>
+                      <Th></Th>
+                      <Th></Th>
+                      <Th></Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {data?.goals.map((goal, index) => (
+                      <GoalRow
+                        index={index}
+                        goal={goal}
+                        deleteGoal={deleteGoal}
+                        setShowingSubgoals={setShowingSubgoals}
+                        setEditingGoal={setEditingGoal}
+                      />
+                    ))}
+                    {provided.placeholder}
+                  </Tbody>
+                </Table>
+              )}
+            </Droppable>
+          </DragDropContext>
         )}
       </Box>
     </>
